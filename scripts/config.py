@@ -1145,6 +1145,83 @@ if _interview_hr_prompt:
 
 
 # ============================================================================
+# Music-carrier scenarios (S3a AI-detection bypass, S3b copyright bypass)
+# ----------------------------------------------------------------------------
+# Same zero-touch pattern as the interview case: each scenario ships a
+# `carrier_to_target.json` (the exact (carrier, target) pairs the paper
+# attacks) and a `prompt.txt` (the platform-classifier system prompt the
+# victim model is given). Registering them here is what makes
+#   run_robust_benchmark.py --prompt-mode ai_detection_bypass ...
+# able to reach these scenarios. Missing files are skipped silently, so the
+# S3b entries stay inert until the copyrighted carriers are supplied.
+# ============================================================================
+
+MUSIC_SCENARIOS = {
+    "ai_detection_bypass": os.path.join(MUSIC_DIR, "03a_ai_detection_bypass"),
+    "copyright_bypass": os.path.join(MUSIC_DIR, "03b_copyright_bypass"),
+}
+
+
+def _load_music_scenario(mode_name, scen_dir):
+    """Return (carriers, commands, prompt) for one music-carrier scenario.
+
+    carriers: {carrier_stem: abs_path}
+    commands: {command_key: {mode_name: target_text, "transcribe": ..., "qa": ...}}
+    prompt:   platform-classifier system prompt, or None
+    """
+    carriers, commands, prompt = {}, {}, None
+
+    prompt_path = os.path.join(scen_dir, "prompt.txt")
+    if os.path.isfile(prompt_path):
+        with open(prompt_path) as fh:
+            prompt = fh.read().strip() or None
+
+    map_path = os.path.join(scen_dir, "carrier_to_target.json")
+    if not os.path.isfile(map_path):
+        return carriers, commands, prompt
+    try:
+        with open(map_path) as fh:
+            spec = json.load(fh)
+    except (OSError, ValueError):
+        return carriers, commands, prompt
+
+    carrier_root = os.path.join(PROJECT_ROOT, spec.get("carrier_root", ""))
+    seen_targets = []
+    for pair in spec.get("pairs", []):
+        carrier = pair.get("carrier")
+        target = pair.get("target")
+        if not carrier or not target:
+            continue
+        path = os.path.join(carrier_root, carrier)
+        if os.path.isfile(path):
+            carriers[os.path.splitext(carrier)[0]] = path
+        if target not in seen_targets:
+            seen_targets.append(target)
+
+    # One command per distinct target string, numbered in map order so the
+    # pair index in the paper's bundles stays recoverable.
+    for i, target in enumerate(seen_targets):
+        commands[f"{mode_name}_{i:02d}"] = {
+            "transcribe": target,
+            "qa": target,
+            mode_name: target,
+        }
+    return carriers, commands, prompt
+
+
+for _mode, _dir in MUSIC_SCENARIOS.items():
+    _c, _cmds, _p = _load_music_scenario(_mode, _dir)
+    MUSIC_FILES.update(_c)
+    AGENT_COMMANDS.update(_cmds)
+    if _p:
+        PROMPT_MODES[_mode] = {
+            "prompt": _p,
+            "description": f"{_mode}: platform-classifier system prompt "
+                           f"({os.path.relpath(_dir, PROJECT_ROOT)}/prompt.txt)",
+        }
+
+
+# ============================================================================
 # WER (Word Error Rate) computation
 # ============================================================================
 
