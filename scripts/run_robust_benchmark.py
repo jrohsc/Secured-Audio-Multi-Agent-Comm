@@ -764,8 +764,11 @@ def main():
     parser.add_argument("--channel-only", action="store_true",
                         help="Use channel simulation on ALL steps (no warmup, no alternation)")
     parser.add_argument("--channel-mode", type=str, default="ota",
-                        choices=["ir", "codec", "full", "ota", "yakura_ota", "diverse_ir", "cyclic_ir", "spec_ota", "empirical_ota"],
-                        help="Channel mode: ir, codec, full, ota, yakura_ota, diverse_ir, cyclic_ir, spec_ota, empirical_ota")
+                        choices=["ir", "codec", "multi_bitrate", "full", "ota", "soundcloud",
+                                 "yakura_ota", "diverse_ir", "cyclic_ir", "spec_ota", "empirical_ota"],
+                        help="Channel mode. 'multi_bitrate' is the Opus codec-EoT mode that "
+                             "produced the paper's *_multibitrate bundles (random bitrate from "
+                             "{16,24,32,64,128} kbps per step, straight-through).")
     parser.add_argument("--diverse-ir-n", type=int, default=20,
                         help="Number of diverse RIRs for diverse_ir mode")
     parser.add_argument("--no-worst-case", action="store_true",
