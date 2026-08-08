@@ -1,0 +1,32 @@
+# Qwen2.5-Omni environment ("qwen-omni").
+#
+# Kept separate from requirements.txt because Qwen2.5-Omni needs a transformers
+# build with the Omni processor, which conflicts with the pinned version in the
+# primary environment.
+#
+#   conda create -n qwen-omni python=3.10
+#   conda activate qwen-omni
+#   conda install -c conda-forge ffmpeg
+#   pip install -r requirements_omni.txt
+#
+# Verify with:  python scripts/check_env.py
+
+torch==2.10.0
+torchaudio==2.10.0
+transformers==4.57.6
+accelerate==1.12.0
+numpy==2.2.6
+scipy==1.15.3
+tqdm==4.67.1
+
+soundfile==0.13.1
+librosa==0.11.0
+
+# Codecs used by the cross-codec (S3b) drivers that target Qwen2.5-Omni.
+encodec==0.1.1
+descript-audio-codec==1.0.0
+snac==1.2.1
+
+pesq==0.0.4
+pyloudnorm==0.2.0
+jiwer==3.0.4

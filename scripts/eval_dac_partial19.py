@@ -13,21 +13,22 @@ os.environ.setdefault("TMPDIR",
     os.path.join(os.path.expanduser("~"), ".cache", "codec_attack_scratch"))
 os.makedirs(os.environ["TMPDIR"], exist_ok=True)
 
-SCRIPTS = Path("${REPO_ROOT}/0_all_combined/scripts")
+SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 
-# Reuse helpers from run_dac_full (also brings in CODECATTACK_LIB on sys.path).
+# Reuse helpers from run_dac_full (which also sets up sys.path via config).
 from run_dac_full import (
     CHANNELS_FULL, DEVICE, MODEL_PATH, lookup_pair,
     channel_route_and_save, eval_wav,
     EPS_DAC, ATTACK_STEPS, EOT_OPUS_BITRATES,
 )
 import torch
+from config import RESULTS_DIR
 from models.qwen25_omni import Qwen25OmniModel
 
-OUT = Path("${REPO_ROOT}/"
-           "0_all_combined/results_OTHER_NEURAL_CODECS/results_DAC/"
-           "03b_copyright_bypass/qwen25_omni/eot_full")
+OUT = Path(RESULTS_DIR) / (
+    "03b_copyright_bypass/dac_eps0.6194/eot_full"
+)
 AUDIO = OUT / "audio"
 
 print(f"[init] audio dir: {AUDIO}")

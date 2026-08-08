@@ -12,3 +12,10 @@ __pycache__/
 *.log
 *.tmp
 .cache/
+
+# Regenerated output: attacked audio, per-run rollups, rebuilt LaTeX tables.
+# The reference rollups that back the paper live in data/eval_rollups/.
+/results/
+
+# Copyrighted carriers are not redistributed (see docs/MANIFEST_AUDIO.md).
+/data/music/copyrighted/

@@ -1,0 +1,40 @@
+# Primary environment ("codec-attack"): Qwen2-Audio attacks, EnCodec / Mimi /
+# DAC / SNAC codec wrappers, channel simulation, and the table builders.
+# Versions are the ones the paper's numbers were produced with.
+#
+#   conda create -n codec-attack python=3.10
+#   conda activate codec-attack
+#   conda install -c conda-forge ffmpeg      # required by every codec channel
+#   pip install -r requirements.txt
+#
+# Verify the install with:  python scripts/check_env.py
+
+# --- core ---
+torch==2.10.0
+torchaudio==2.10.0
+transformers==4.57.6
+accelerate==1.12.0
+numpy==2.2.6
+scipy==1.15.3
+tqdm==4.67.1
+
+# --- audio I/O ---
+soundfile==0.13.1
+librosa==0.11.0
+
+# --- neural codecs (each gates one experiment) ---
+encodec==0.1.1                 # S1-S4 headline attacks
+descript-audio-codec==1.0.0    # DAC cross-codec attack
+snac==1.2.1                    # SNAC cross-codec attack
+
+# --- evaluation metrics ---
+pesq==0.0.4                    # ITU-T P.862.2 wideband PESQ
+pyloudnorm==0.2.0              # LUFS / dLUFS
+jiwer==3.0.4                   # WER (a fallback implementation is used if absent)
+
+# --- defenses ---
+audioseal==0.2.0               # AudioSeal watermark defense
+noisereduce==3.0.3             # spectral-gating defense
+
+# --- carrier regeneration (optional) ---
+edge-tts==7.2.8                # only needed to re-synthesize the TTS carriers

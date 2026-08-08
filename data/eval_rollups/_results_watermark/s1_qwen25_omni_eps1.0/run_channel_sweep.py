@@ -41,7 +41,7 @@ import torchaudio
 
 # --- repo path bootstrap -----------------------------------------------------
 HERE = Path(__file__).resolve().parent                       # this folder
-ROOT = HERE.parent.parent                                    # 0_all_combined/
+ROOT = HERE.parent.parent  # repo root
 CODEC = ROOT.parent                                          # codec_attack/
 
 sys.path.insert(0, str(CODEC))

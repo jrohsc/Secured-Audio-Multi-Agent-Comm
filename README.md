@@ -11,14 +11,25 @@ codec_wrappers/            Continuous-latent encode/decode wrappers
     dac_wrapper.py         Descript Audio Codec (24 kHz, 75 fps, 1024-d latent)
     snac_wrapper.py        SNAC multi-scale RVQ
     channel_augmentation.py    Differentiable Opus / MP3 / AAC straight-through proxies
-    models/                Target-LLM adapters (Qwen2-Audio, Qwen2.5-Omni, Audio Flamingo 3)
+    models/                Target-LLM adapters (Qwen2-Audio, Qwen2.5-Omni,
+                           Audio Flamingo 3, Kimi-Audio, PersonaPLEX/Moshi)
 
 scripts/                   Attack drivers, eval, table builders
+    config.py                   Centralized paths, target maps, prompt modes
+    check_env.py                Smoke check: run this first on a fresh clone
     latent_attack.py            Core latent-space PGD
     robust_latent_attack.py     With codec EoT
+    ensemble_attack.py          Multi-model ensemble PGD
+    music_carrier.py            Carrier loading + mel perceptual distances
+    aac_channel.py              AAC / MP3 straight-through channel
+    demo_ota.py                 Over-the-air channel simulation
+    realistic_channel.py        Speaker nonlinearity + physical channel filters
+    watermark_defense.py        AudioSeal defense evaluation
+    run_benchmark.py            Basic (non-robust) benchmark driver
     run_robust_benchmark.py     Main benchmark driver (EnCodec)
     run_mimi_full.py            Mimi cross-codec attack
     run_dac_full.py             DAC cross-codec attack
+    eval_models.py              Cross-model evaluation helpers
     eval_quality_*.py           SNR / LSD / PESQ / dLUFS audio quality
     eval_dac_partial19.py       Routing + eval over the 19 DAC attacked wavs
     build_*.py                  Aggregation scripts that turn raw JSONs into the paper tables
@@ -53,11 +64,21 @@ docs/
 
 ## Quick reproduction
 
-1. Install dependencies (`docs/REPRODUCE.md`).
-2. Export model paths (`MODEL_PATH_QWEN2_AUDIO`, `MODEL_PATH_QWEN25_OMNI`, `MODEL_PATH_AUDIO_FLAMINGO_3`).
+```bash
+conda create -n codec-attack python=3.10 && conda activate codec-attack
+conda install -c conda-forge ffmpeg
+pip install -r requirements.txt
+python scripts/check_env.py        # verifies imports, paths, data, and ffmpeg
+```
+
+1. Install dependencies as above (details in `docs/REPRODUCE.md`).
+2. Optionally export model paths (`MODEL_PATH_QWEN2_AUDIO`, `MODEL_PATH_QWEN25_OMNI`, `MODEL_PATH_AUDIO_FLAMINGO_3`) to use local snapshots. If unset, the scripts fall back to the public HuggingFace repo ids and download on first use.
 3. For S3a / S3b only: obtain the 9 commercial-music carriers through legitimate means, place at `data/music/copyrighted/`, verify with the SHA-256 manifest. (TTS carriers and Suno music are already in this repo.)
 4. Run an attack driver: e.g. `python scripts/run_dac_full.py --mode full`.
 5. Regenerate the paper's tables: `python scripts/build_main_results_tables.py`.
+
+Attacked audio and any newly computed metrics are written under `results/`; the
+reference rollups shipped in `data/eval_rollups/` are never overwritten.
 
 ## What is in `carrier_to_target.json`
 

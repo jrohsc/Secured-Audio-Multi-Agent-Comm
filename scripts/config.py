@@ -4,24 +4,52 @@ Centralized configuration for latent-space adversarial attacks on Audio LLMs.
 
 import json
 import os
+import shutil
+import sys
 
 # ============================================================================
 # Paths
 # ============================================================================
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+# config.py lives in scripts/, so the repo root is its parent. Every data path
+# below is relative to the repo root, not to scripts/.
+SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPTS_DIR)
 WORKSPACE_ROOT = os.path.dirname(PROJECT_ROOT)
 
-# Reusable components from codecattack_lib
-CODECATTACK_LIB_ROOT = os.path.join(WORKSPACE_ROOT, "external", "codecattack_lib")
+# Codec + target-model wrappers. Putting this on sys.path here (rather than in
+# each driver) means it is in place before any `models.*` / wrapper import runs,
+# because every driver imports config first.
+CODECATTACK_LIB_ROOT = os.path.join(PROJECT_ROOT, "codec_wrappers")
+for _p in (SCRIPTS_DIR, CODECATTACK_LIB_ROOT):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
-# ffmpeg binary (not in all conda envs)
-FFMPEG_BIN = os.path.join(
-    os.path.dirname(WORKSPACE_ROOT), "miniconda3", "envs", "codec-attack", "bin", "ffmpeg"
-)
+
+def _find_ffmpeg():
+    """$FFMPEG_BIN, else PATH, else the active interpreter's bin/ (conda envs
+    ship ffmpeg there without necessarily putting it on PATH)."""
+    explicit = os.environ.get("FFMPEG_BIN")
+    if explicit:
+        return explicit
+    on_path = shutil.which("ffmpeg")
+    if on_path:
+        return on_path
+    sibling = os.path.join(os.path.dirname(sys.executable), "ffmpeg")
+    return sibling if os.path.isfile(sibling) else "ffmpeg"
+
+
+FFMPEG_BIN = _find_ffmpeg()
+
+# Shipped data: carriers, target maps, and the reference eval rollups.
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+SPEECH_DIR = os.path.join(DATA_DIR, "speech")
+# Reference per-cell rollups that back the paper's tables. Treat as read-only;
+# anything regenerated goes under RESULTS_DIR.
+EVAL_ROLLUPS_DIR = os.path.join(DATA_DIR, "eval_rollups")
 
 # Music carrier files
-MUSIC_DIR = os.path.join(PROJECT_ROOT, "data", "music")
+MUSIC_DIR = os.path.join(DATA_DIR, "music")
 MUSIC_FILES = {
     "calm_1": os.path.join(MUSIC_DIR, "calm_1.mp3"),
     "calm_2": os.path.join(MUSIC_DIR, "calm_2.mp3"),
@@ -44,15 +72,35 @@ RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
 # Model paths
 # ============================================================================
 
-MODEL_PATHS = {
-    "qwen2_audio": "${MODEL_PATH_QWEN2_AUDIO}",
-    "qwen25_omni": "${MODEL_PATH_QWEN25_OMNI}",
-    "qwen25_omni_3b": "${MODEL_PATH_QWEN25_OMNI_3B}",
-    "qwen25_omni_7b": "${MODEL_PATH_QWEN25_OMNI}",
-    "audio_flamingo": "${MODEL_PATH_AUDIO_FLAMINGO_3}",
-    "judge_llm": "${MODEL_PATH}",
-    "personaplex": "kmhf/hf-moshiko",  # Base Moshi (PersonaPLEX fine-tune can be swapped in)
+# Each entry is (environment variable, HuggingFace repo id used as fallback).
+# The env var lets you point at a local snapshot; if it is unset we fall back to
+# the public repo id so `from_pretrained` downloads it. See docs/REPRODUCE.md.
+MODEL_PATH_ENV = {
+    "qwen2_audio": ("MODEL_PATH_QWEN2_AUDIO", "Qwen/Qwen2-Audio-7B-Instruct"),
+    "qwen25_omni": ("MODEL_PATH_QWEN25_OMNI", "Qwen/Qwen2.5-Omni-7B"),
+    "qwen25_omni_3b": ("MODEL_PATH_QWEN25_OMNI_3B", "Qwen/Qwen2.5-Omni-3B"),
+    "qwen25_omni_7b": ("MODEL_PATH_QWEN25_OMNI", "Qwen/Qwen2.5-Omni-7B"),
+    "audio_flamingo": ("MODEL_PATH_AUDIO_FLAMINGO_3", "nvidia/audio-flamingo-3-hf"),
+    "kimi_audio": ("MODEL_PATH_KIMI_AUDIO", "moonshotai/Kimi-Audio-7B-Instruct"),
+    "judge_llm": ("MODEL_PATH_JUDGE_LLM", "meta-llama/Llama-3.2-3B-Instruct"),
+    # Base Moshi (a PersonaPLEX fine-tune can be swapped in via the env var).
+    "personaplex": ("MODEL_PATH_PERSONAPLEX", "kmhf/hf-moshiko"),
 }
+
+# Resolved at import: env var if set, else the public HuggingFace repo id.
+MODEL_PATHS = {
+    name: (os.environ.get(env) or fallback)
+    for name, (env, fallback) in MODEL_PATH_ENV.items()
+}
+
+
+def resolve_model_path(name):
+    """Return the checkpoint path for `name`, with a pointed error if unknown."""
+    if name not in MODEL_PATHS:
+        raise KeyError(
+            f"Unknown model '{name}'. Known models: {sorted(MODEL_PATHS)}"
+        )
+    return MODEL_PATHS[name]
 
 # Models available for cross-model evaluation
 EVAL_MODELS = ["qwen2_audio", "qwen25_omni", "audio_flamingo", "personaplex"]

@@ -10,17 +10,25 @@ Outputs:
   quality/quality.jsonl
   quality/quality_rollup.json
 """
-import json, sys, time
+import json, os, sys, time
 from pathlib import Path
 import numpy as np
 import soundfile as sf
 import torch, torchaudio
 
-ROOT = Path("${REPO_ROOT}")
-EN   = ROOT / "0_all_combined/results_codec_robust/03b_copyright_bypass/qwen25_omni/eps_1.0_multibitrate"
-QDIR = EN / "quality"
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import EVAL_ROLLUPS_DIR, MUSIC_DIR, RESULTS_DIR
+
+# results.jsonl ships with the repo; regenerated WAVs land under RESULTS_DIR.
+# Point $BUNDLE_DIR elsewhere to score a different run.
+EN   = Path(os.environ.get(
+    "BUNDLE_DIR",
+    Path(EVAL_ROLLUPS_DIR) / "03b_copyright_bypass/encodec_eps1.0",
+))
+QDIR = Path(RESULTS_DIR) / "03b_copyright_bypass/encodec_eps1.0/quality"
 RTDIR = QDIR / "encodec_clean_roundtrip"
-CARS = ROOT / "0_all_combined/data/music/copyrighted"
+CARS = Path(MUSIC_DIR) / "copyrighted"
 
 QDIR.mkdir(parents=True, exist_ok=True)
 RTDIR.mkdir(parents=True, exist_ok=True)
@@ -34,7 +42,7 @@ for r in ROWS:
     p = r["adv_audio_path"]
     pair_idx = int(p.split("_pair")[-1].split("_")[0])
     carrier = r["carrier"].replace(".mp3", "")
-    candidates = [ROOT / "0_all_combined" / p, ROOT / p]
+    candidates = [EN / p, ROOT / p, Path(RESULTS_DIR) / p]
     atk_path = next((c for c in candidates if c.is_file()), candidates[0])
     PAIR_ENTRIES.append(dict(pair=pair_idx, carrier=carrier, atk_path=atk_path,
                              target=r["target_command"]))
@@ -51,8 +59,7 @@ def load24k(path):
 
 
 def stage1_roundtrip():
-    sys.path.insert(0, "${PROJECT_ROOT}/external/codecattack_lib")
-    from attacks.latent_codec import EnCodecWrapper
+    from encodec_wrapper import EnCodecWrapper
 
     print("[stage1] loading EnCodec codec...")
     codec = EnCodecWrapper(bandwidth=6.0, device=DEVICE)

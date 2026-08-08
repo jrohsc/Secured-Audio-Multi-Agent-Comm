@@ -28,8 +28,10 @@ class Qwen2AudioModel(BaseAudioModel):
     SAMPLE_RATE = 16000
     MEL_LENGTH = 3000  # Qwen2-Audio expects exactly 3000 mel frames
 
-    # Default local path for Qwen2-Audio-7B-Instruct
-    DEFAULT_MODEL_PATH = '${MODEL_PATH_QWEN2_AUDIO}'
+    # Local snapshot via $MODEL_PATH_QWEN2_AUDIO, else the public HF repo.
+    DEFAULT_MODEL_PATH = os.environ.get(
+        "MODEL_PATH_QWEN2_AUDIO", "Qwen/Qwen2-Audio-7B-Instruct"
+    )
 
     def __init__(
         self,

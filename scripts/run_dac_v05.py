@@ -65,10 +65,11 @@ except ModuleNotFoundError:
 # --------------------------------------------------------------------------- #
 # Project imports
 # --------------------------------------------------------------------------- #
-CODECATTACK_LIB = "${PROJECT_ROOT}/external/codecattack_lib"
-sys.path.insert(0, CODECATTACK_LIB)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from attacks.latent_codec_dac import DACWrapper
+from config import MODEL_PATHS, RESULTS_DIR, EVAL_ROLLUPS_DIR  # also puts codec_wrappers/ on sys.path
+
+from dac_wrapper import DACWrapper
 from models.qwen25_omni import Qwen25OmniModel
 
 # --------------------------------------------------------------------------- #
@@ -83,21 +84,15 @@ DAC_SR = 24000
 TARGET_SR = 16000
 DEVICE = "cuda"
 
-MODEL_PATH = (
-    "${MODEL_PATH_QWEN25_OMNI}"
-    "ae9e1690543ffd5c0221dc27f79834d0294cba00"
+MODEL_PATH = MODEL_PATHS["qwen25_omni"]
+
+# Reference EnCodec bundle (attacked WAVs are regenerated, not shipped).
+ENCODEC_BUNDLE = Path(EVAL_ROLLUPS_DIR) / (
+    "03b_copyright_bypass/encodec_eps1.0/audio"
 )
 
-ENCODEC_BUNDLE = Path(
-    "${REPO_ROOT}/"
-    "0_all_combined/results_codec_robust/03b_copyright_bypass/"
-    "qwen25_omni/eps_1.0_multibitrate/audio"
-)
-
-OUT_DIR = Path(
-    "${REPO_ROOT}/"
-    "0_all_combined/results_OTHER_NEURAL_CODECS/results_DAC/"
-    "03b_copyright_bypass/qwen25_omni/v05"
+OUT_DIR = Path(RESULTS_DIR) / (
+    "03b_copyright_bypass/dac_eps0.6194/v05"
 )
 
 CHANNELS = [

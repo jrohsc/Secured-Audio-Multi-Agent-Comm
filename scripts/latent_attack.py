@@ -158,13 +158,13 @@ class LatentCodecAttacker:
 
     def _init_encodec(self, bandwidth: float):
         """Initialize EnCodec model."""
-        from attacks.latent_codec import EnCodecWrapper
+        from encodec_wrapper import EnCodecWrapper
         self.codec = EnCodecWrapper(bandwidth=bandwidth, device=self.device)
         self.log(f"EnCodec loaded (bandwidth={bandwidth} kbps, sr={self.codec.sample_rate})")
 
     def _init_mimi_from_model(self):
         """Initialize Mimi codec wrapper from the already-loaded PersonaPLEX model."""
-        from attacks.latent_codec_mimi import MimiCodecWrapper
+        from mimi_wrapper import MimiCodecWrapper
         # Reuse the Mimi model already loaded inside PersonaPLEXModel
         self.codec = MimiCodecWrapper(
             model=self.target_model.mimi,

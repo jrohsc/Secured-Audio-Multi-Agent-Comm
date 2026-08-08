@@ -35,7 +35,10 @@ class AudioFlamingoModel(BaseAudioModel):
     SAMPLE_RATE = 16000
     MEL_LENGTH = 3000  # 30s * 16kHz -> 3000 mel frames
 
-    DEFAULT_MODEL_PATH = '${MODEL_PATH_AUDIO_FLAMINGO_3}'
+    # Local snapshot via $MODEL_PATH_AUDIO_FLAMINGO_3, else the public HF repo.
+    DEFAULT_MODEL_PATH = os.environ.get(
+        "MODEL_PATH_AUDIO_FLAMINGO_3", "nvidia/audio-flamingo-3-hf"
+    )
 
     def __init__(
         self,

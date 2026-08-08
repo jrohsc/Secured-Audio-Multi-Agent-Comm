@@ -25,12 +25,12 @@ import soundfile as sf
 import numpy as np
 import librosa  # only for carrier load (not eval)
 
-CODECATTACK_LIB = "${PROJECT_ROOT}/external/codecattack_lib"
-PROJ_ROOT = "${REPO_ROOT}"
-sys.path.insert(0, PROJ_ROOT)
-sys.path.insert(0, CODECATTACK_LIB)
+PROJ_ROOT = str(Path(__file__).resolve().parents[1])
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from attacks.latent_codec_mimi import MimiCodecWrapper
+from config import MODEL_PATHS, RESULTS_DIR, EVAL_ROLLUPS_DIR  # also puts codec_wrappers/ on sys.path
+
+from mimi_wrapper import MimiCodecWrapper
 from models.qwen25_omni import Qwen25OmniModel
 from channel_augmentation import DifferentiableOpusProxy
 from aac_channel import apply_mp3_compression, apply_aac_compression
@@ -46,9 +46,10 @@ TARGET_SR = 16000
 DEVICE = "cuda"
 EOT_OPUS_BITRATES = [16, 24, 32, 64, 128, 192]
 
-MODEL_PATH = "${MODEL_PATH_QWEN25_OMNI}"
-ENCODEC_BUNDLE = Path(PROJ_ROOT) / "0_all_combined/results_codec_robust/03b_copyright_bypass/qwen25_omni/eps_1.0_multibitrate/audio"
-OUT_ROOT = Path(PROJ_ROOT) / "0_all_combined/results_OTHER_NEURAL_CODECS/results_MIMI/03b_copyright_bypass/qwen25_omni"
+MODEL_PATH = MODEL_PATHS["qwen25_omni"]
+# Reference EnCodec bundle (attacked WAVs are regenerated, not shipped).
+ENCODEC_BUNDLE = Path(EVAL_ROLLUPS_DIR) / "03b_copyright_bypass/encodec_eps1.0/audio"
+OUT_ROOT = Path(RESULTS_DIR) / "03b_copyright_bypass/mimi_eps0.2"
 
 CHANNELS_FULL = (
     [("clean", "clean", None)]

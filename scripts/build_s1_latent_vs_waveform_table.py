@@ -13,7 +13,14 @@ import json
 import math
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent  # 0_all_combined/
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import EVAL_ROLLUPS_DIR, PROJECT_ROOT
+
+ROOT = Path(PROJECT_ROOT)
+# Reference rollups ship in data/eval_rollups/; generated .tex goes to results/tables/.
+ROLLUPS = Path(EVAL_ROLLUPS_DIR)
+TABLES_OUT = ROOT / "results" / "tables"
 
 OPUS_BITRATES = [16, 24, 32, 64, 96, 128, 192]
 MP3_BITRATES  = [16, 24, 32, 64, 96, 128, 192]

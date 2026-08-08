@@ -23,11 +23,19 @@ import numpy as np
 import soundfile as sf
 import torch, torchaudio
 
-ROOT  = Path("${REPO_ROOT}")
-EOT   = ROOT / "0_all_combined/results_OTHER_NEURAL_CODECS/results_MIMI/03b_copyright_bypass/qwen25_omni/eot_full"
-QDIR  = EOT / "quality"
+ROOT  = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import EVAL_ROLLUPS_DIR, MUSIC_DIR, RESULTS_DIR
+
+# rollup.json ships with the repo; regenerated WAVs land under RESULTS_DIR.
+# Point $BUNDLE_DIR elsewhere to score a different run.
+EOT   = Path(os.environ.get(
+    "BUNDLE_DIR",
+    Path(EVAL_ROLLUPS_DIR) / "03b_copyright_bypass/mimi_eps0.2",
+))
+QDIR  = Path(RESULTS_DIR) / "03b_copyright_bypass/mimi_eps0.2/quality"
 RTDIR = QDIR / "mimi_clean_roundtrip"
-CARS  = ROOT / "0_all_combined/data/music/copyrighted"
+CARS  = Path(MUSIC_DIR) / "copyrighted"
 
 QDIR.mkdir(parents=True, exist_ok=True)
 RTDIR.mkdir(parents=True, exist_ok=True)
@@ -52,8 +60,7 @@ def load24k(path):
 
 
 def stage1_roundtrip():
-    sys.path.insert(0, "${PROJECT_ROOT}/external/codecattack_lib")
-    from attacks.latent_codec_mimi import MimiCodecWrapper
+    from mimi_wrapper import MimiCodecWrapper
 
     print("[stage1] loading MIMI codec...")
     codec = MimiCodecWrapper(device=DEVICE)

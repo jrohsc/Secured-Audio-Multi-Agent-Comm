@@ -17,9 +17,16 @@ import math
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent.parent  # codec_attack/
-RCR = ROOT / "0_all_combined" / "results_codec_robust"
-OUT = ROOT / "0_all_combined" / "paper-neurips" / "tables" / "tab_cross_model.tex"
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import EVAL_ROLLUPS_DIR, PROJECT_ROOT
+
+ROOT = Path(PROJECT_ROOT)
+# Reference rollups ship in data/eval_rollups/; generated .tex goes to results/tables/.
+ROLLUPS = Path(EVAL_ROLLUPS_DIR)
+TABLES_OUT = ROOT / "results" / "tables"
+RCR = ROLLUPS
+OUT = TABLES_OUT / "tab_cross_model.tex"
 
 MODELS = [
     ("qwen2_audio",    "Qwen2-Audio"),

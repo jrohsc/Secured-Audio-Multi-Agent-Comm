@@ -9,11 +9,11 @@ h is the 95% Wilson-interval half-width in percentage points; n is reported in
 its own column. \\pending denotes a missing or empty bundle.
 
 Usage:
-    python 0_all_combined/scripts/build_main_results_tables.py
+    python scripts/build_main_results_tables.py
     # optional: limit to one scenario
-    python 0_all_combined/scripts/build_main_results_tables.py --scenario S1
+    python scripts/build_main_results_tables.py --scenario S1
     # or write the legacy single-file dump instead of per-table files:
-    python 0_all_combined/scripts/build_main_results_tables.py --legacy-mono
+    python scripts/build_main_results_tables.py --legacy-mono
 """
 from __future__ import annotations
 
@@ -23,16 +23,23 @@ import math
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent.parent  # codec_attack/
-LEGACY_OUT_TEX = ROOT / "paper" / "tables_main_results.tex"
-TABLES_DIR = ROOT / "0_all_combined" / "paper-neurips" / "tables"
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import EVAL_ROLLUPS_DIR, PROJECT_ROOT
+
+ROOT = Path(PROJECT_ROOT)
+# Reference rollups ship in data/eval_rollups/; generated .tex goes to results/tables/.
+ROLLUPS = Path(EVAL_ROLLUPS_DIR)
+TABLES_OUT = ROOT / "results" / "tables"
+LEGACY_OUT_TEX = TABLES_OUT / "tables_main_results.tex"
+TABLES_DIR = TABLES_OUT
 PER_TABLE_OUT = {
     "S1":    TABLES_DIR / "tab_S1.tex",
     "S2":    TABLES_DIR / "tab_S2_English.tex",
     "S2_zh": TABLES_DIR / "S2_mandarin.tex",
     "S3":    TABLES_DIR / "tab_S3.tex",
 }
-RCR = ROOT / "0_all_combined" / "results_codec_robust"
+RCR = ROLLUPS
 
 OPUS_BRS = [16, 24, 32, 64, 128, 192]
 MP3_BRS  = [64, 96, 128, 192]

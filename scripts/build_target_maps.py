@@ -1,7 +1,7 @@
 """Build per-scenario `_target_map.json` by tracing each symlinked wav back to its
 source `config.json` and extracting the matching target string.
 
-Run from `0_all_combined/`:
+Run from the repo root:
     python scripts/build_target_maps.py
 """
 from __future__ import annotations

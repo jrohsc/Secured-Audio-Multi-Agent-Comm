@@ -6,7 +6,7 @@ so attack code is codec-agnostic. Operates on the pre-quantization continuous
 latent so we can compute gradients through the decoder.
 
 Reference: external/codecattack_lib/attacks/latent_codec.py (EnCodecWrapper)
-API discovered in: 0_all_combined/scripts/logs/dac_api_probe.log
+API verified against descript-audio-codec 1.0.0.
 """
 
 import torch

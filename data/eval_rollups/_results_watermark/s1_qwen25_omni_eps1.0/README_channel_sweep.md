@@ -57,7 +57,7 @@ is doing the work.
 
 ```bash
 cd ${REPO_ROOT}/\
-0_all_combined/results_defense_watermark/s1_qwen25_omni_eps1.0
+data/eval_rollups/_results_watermark/s1_qwen25_omni_eps1.0
 
 bash run.sh
 ```
@@ -73,7 +73,7 @@ That env is required because:
 - The `qwen-omni` env has both `omegaconf 2.3.0` and the Qwen2.5-Omni
   model wrapper in scope.
 
-This is the same routing as the existing `0_all_combined/run_defense.sh`.
+This is the same routing as the existing `run_defense.sh`.
 
 ### Smoke test (5 pairs)
 
@@ -143,7 +143,7 @@ The new sweep writes to **separate files** (`results_per_channel.jsonl`,
 The new numbers feed Option A of the watermark table — one model row,
 six channel rows, three metrics columns. The rebuild logic for that table
 is **not yet wired up**; once the run finishes, draft a small builder
-under `0_all_combined/scripts/` that reads
+under `scripts/` that reads
 `summary_per_channel.json` and emits `paper-neurips/tables/tab_watermark_channels.tex`.
 
 Sanity check before quoting numbers:
